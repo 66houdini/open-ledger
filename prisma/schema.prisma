@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Bank accounts holding balances
+model Account {
+  id        String   @id @default(uuid())
+  name      String
+  balance   Decimal  @default(0) @db.Decimal(19, 4)
+  entries   Entry[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// A single financial transaction (e.g., a transfer)
+model Transaction {
+  id          String   @id @default(uuid())
+  description String?
+  entries     Entry[]
+  createdAt   DateTime @default(now())
+}
+
+// Double-entry: every transaction has debit + credit entries
+model Entry {
+  id            String      @id @default(uuid())
+  amount        Decimal     @db.Decimal(19, 4)
+  type          EntryType
+  accountId     String
+  account       Account     @relation(fields: [accountId], references: [id])
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  createdAt     DateTime    @default(now())
+
+  @@index([accountId])
+  @@index([transactionId])
+}
+
+enum EntryType {
+  DEBIT
+  CREDIT
+}
