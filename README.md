@@ -171,13 +171,57 @@ This starts:
 
 ## Scripts
 
-| Command              | Description                      |
-| -------------------- | -------------------------------- |
-| `npm run dev`        | Start dev server with hot reload |
-| `npm run build`      | Build for production             |
-| `npm start`          | Run production build             |
-| `npx prisma studio`  | Open database GUI                |
-| `npx prisma db push` | Push schema to database          |
+| Command               | Description                      |
+| --------------------- | -------------------------------- |
+| `npm run dev`         | Start dev server with hot reload |
+| `npm run dev:all`     | Start DB, API, and Prisma Studio |
+| `npm run build`       | Build for production             |
+| `npm start`           | Run production build             |
+| `npm run db:start`    | Start PostgreSQL container       |
+| `npm run db:stop`     | Stop PostgreSQL container        |
+| `npm run db:studio`   | Open Prisma Studio GUI           |
+| `npm run stress-test` | Run concurrent withdrawal test   |
+
+## Stress Test
+
+Verify row-level locking works by running 50 concurrent withdrawals:
+
+```bash
+npm run stress-test
+```
+
+**Expected Output:**
+
+```
+============================================================
+CONCURRENT WITHDRAWAL STRESS TEST
+============================================================
+
+1. Creating test account with $100...
+
+2. Firing 50 concurrent $10 withdrawal requests...
+   (This tests row-level locking with SELECT ... FOR UPDATE)
+
+3. Results:
+   Total requests:      50
+   Successful:          10
+   Failed:              40
+   "Insufficient funds": 40
+
+4. Final Balance Check:
+   Expected: $0
+   Actual:   $0
+
+============================================================
+TEST PASSED - Row-level locking prevented overdrafts!
+============================================================
+```
+
+With $100 and 50 × $10 withdrawal attempts:
+
+- **10 succeed** (emptying the account)
+- **40 are rejected** (insufficient funds)
+- Balance never goes negative — no race conditions!
 
 ## License
 

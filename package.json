@@ -5,12 +5,16 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "dev:all": "concurrently -n db,api,studio -c blue,green,magenta \"npm run db:start\" \"npm run dev\" \"npm run db:studio\"",
     "build": "tsc",
     "start": "node dist/index.js",
+    "db:start": "docker start fintech-db || docker run --name fintech-db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ledger -p 5432:5432 -d postgres:15-alpine",
+    "db:stop": "docker stop fintech-db",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "stress-test": "npx ts-node src/tests/stress-test.ts"
   },
   "keywords": [
     "fintech",
@@ -30,6 +34,7 @@
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.0",
+    "concurrently": "^8.2.2",
     "prisma": "^5.7.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.0"
