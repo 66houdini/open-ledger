@@ -155,16 +155,23 @@ This starts:
 ## Project Structure
 
 ```
-├── src/
-│   ├── index.ts          # Express server
-│   ├── routes/
-│   │   └── accounts.ts   # API endpoints
-│   ├── services/
-│   │   └── ledger.ts     # ACID transactions
+├── v1/
+│   ├── index.ts              # Express server entry
+│   ├── accounts/
+│   │   ├── index.ts          # Account routes
+│   │   └── services/
+│   │       ├── account.service.ts  # CRUD operations
+│   │       └── ledger.service.ts   # ACID transactions
+│   ├── config/
+│   │   └── env.ts            # Environment config
 │   └── lib/
-│       └── prisma.ts     # Prisma client
+│       ├── prisma.ts         # Prisma client
+│       └── utils/
+│           ├── errors.ts     # HttpError class
+│           ├── with-errors.ts # Error handler wrapper
+│           └── logger.ts     # Logging utility
 ├── prisma/
-│   └── schema.prisma     # Database models
+│   └── schema.prisma         # Database models
 ├── docker-compose.yml
 └── Dockerfile
 ```
