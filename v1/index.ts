@@ -1,11 +1,10 @@
 import express from "express";
 import dotenv from "dotenv";
-import accountsRouter from "./routes/accounts";
-
-dotenv.config();
+import accountsRouter from "./accounts";
+import { env } from "./config/env";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = env.PORT;
 
 // Middleware
 app.use(express.json());
@@ -29,11 +28,11 @@ app.use(
     err: Error,
     _req: express.Request,
     res: express.Response,
-    _next: express.NextFunction
+    _next: express.NextFunction,
   ) => {
     console.error("Server error:", err);
     res.status(500).json({ error: "Internal server error" });
-  }
+  },
 );
 
 app.listen(PORT, () => {

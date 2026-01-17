@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma";
+import { prisma } from "../../lib/prisma";
 import { Prisma } from "@prisma/client";
 import Decimal from "decimal.js";
 
@@ -10,7 +10,7 @@ export async function transfer(
   fromAccountId: string,
   toAccountId: string,
   amount: number,
-  description?: string
+  description?: string,
 ) {
   const decimalAmount = new Decimal(amount);
 

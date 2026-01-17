@@ -19,7 +19,7 @@ interface Account {
 
 function httpRequest(
   url: string,
-  options: { method: string; body?: string }
+  options: { method: string; body?: string },
 ): Promise<any> {
   return new Promise((resolve, reject) => {
     const urlObj = new URL(url);
@@ -46,7 +46,7 @@ function httpRequest(
             resolve({ ok: false, data: {} });
           }
         });
-      }
+      },
     );
     req.on("error", reject);
     if (options.body) req.write(options.body);
@@ -59,12 +59,18 @@ async function createTestAccount(): Promise<Account> {
     method: "POST",
     body: JSON.stringify({ name: "StressTestAccount", initialBalance: 100 }),
   });
-  return response.data;
+  // Debug: log raw response
+  console.log(
+    "   [DEBUG] Raw response:",
+    JSON.stringify(response.data, null, 2),
+  );
+  // New API returns { success, data: account }
+  return response.data.data;
 }
 
 async function withdraw(
   accountId: string,
-  amount: number
+  amount: number,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const response = await httpRequest(
@@ -72,9 +78,9 @@ async function withdraw(
       {
         method: "POST",
         body: JSON.stringify({ amount }),
-      }
+      },
     );
-    return { success: response.ok, error: response.data.error };
+    return { success: response.ok, error: response.data?.error?.message };
   } catch (err: any) {
     return { success: false, error: err.message };
   }
@@ -84,7 +90,8 @@ async function getAccount(accountId: string): Promise<Account> {
   const response = await httpRequest(`${API_URL}/accounts/${accountId}`, {
     method: "GET",
   });
-  return response.data;
+  // New API returns { success, data: account }
+  return response.data.data;
 }
 
 async function runStressTest() {
@@ -105,7 +112,7 @@ async function runStressTest() {
   const WITHDRAWAL_AMOUNT = 10;
 
   console.log(
-    `2. Firing ${CONCURRENT_REQUESTS} concurrent $${WITHDRAWAL_AMOUNT} withdrawal requests...`
+    `2. Firing ${CONCURRENT_REQUESTS} concurrent $${WITHDRAWAL_AMOUNT} withdrawal requests...`,
   );
   console.log("   (This tests row-level locking with SELECT ... FOR UPDATE)");
   console.log();
@@ -114,7 +121,7 @@ async function runStressTest() {
 
   // Fire all requests simultaneously
   const promises = Array.from({ length: CONCURRENT_REQUESTS }, () =>
-    withdraw(account.id, WITHDRAWAL_AMOUNT)
+    withdraw(account.id, WITHDRAWAL_AMOUNT),
   );
 
   const results = await Promise.all(promises);
@@ -124,7 +131,7 @@ async function runStressTest() {
   const successful = results.filter((r) => r.success).length;
   const failed = results.filter((r) => !r.success).length;
   const insufficientFunds = results.filter(
-    (r) => r.error === "Insufficient funds"
+    (r) => r.error === "Insufficient funds",
   ).length;
 
   console.log("3. Results:");
@@ -152,11 +159,11 @@ async function runStressTest() {
   ) {
     console.log("TEST PASSED - Row-level locking prevented overdrafts!");
     console.log(
-      `Exactly ${successful} withdrawals succeeded, balance is $${finalAccount.balance}`
+      `Exactly ${successful} withdrawals succeeded, balance is $${finalAccount.balance}`,
     );
   } else if (Number(finalAccount.balance) < 0) {
     console.log(
-      "TEST FAILED - Balance went negative (race condition occurred)"
+      "TEST FAILED - Balance went negative (race condition occurred)",
     );
   } else {
     console.log("TEST INCONCLUSIVE - Check the numbers above");
